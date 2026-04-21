@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>FreshMart Intelligence AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #020617;
+            --primary: #3b82f6;
+            --primary-glow: rgba(59, 130, 246, 0.5);
+            --accent: #10b981;
+            --panel-bg: rgba(255, 255, 255, 0.03);
+            --panel-border: rgba(255, 255, 255, 0.08);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-base);
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.15), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(16, 185, 129, 0.15), transparent 25%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        /* --- Header & Connection --- */
+        .header {
+            text-align: center;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            animation: fadeInDown 0.8s ease;
+        }
+        .header h1 {
+            font-size: 42px;
+            font-weight: 700;
+            margin: 0;
+            background: linear-gradient(to right, #60a5fa, #34d399);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
+        }
+        .header p {
+            color: var(--text-muted);
+            font-size: 16px;
+            margin-top: 5px;
+            font-weight: 300;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .connect-container {
+            background: var(--panel-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--panel-border);
+            border-radius: 20px;
+            padding: 24px;
+            width: 360px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            transition: all 0.4s ease;
+            z-index: 10;
+        }
+
+        input {
+            width: 100%;
+            background: rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #fff;
+            padding: 14px 16px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-family: 'Outfit', sans-serif;
+            outline: none;
+            box-sizing: border-box;
+            transition: border 0.3s ease;
+            margin-bottom: 16px;
+        }
+        input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 10px var(--primary-glow);
+        }
+        input::placeholder { color: #64748b; }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #2563eb, #0ea5e9);
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            font-family: 'Outfit', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.6);
+        }
+        button:disabled {
+            background: #334155;
+            box-shadow: none;
+            color: #94a3b8;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 14px;
+            color: var(--text-muted);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        /* --- Main Workspace (Hidden initially) --- */
+        .workspace {
+            display: none;
+            width: 95%;
+            max-width: 1400px;
+            height: 65vh;
+            gap: 24px;
+            margin-top: 10px;
+            animation: fadeIn 0.8s ease forwards;
+        }
+
+        .panel {
+            background: var(--panel-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--panel-border);
+            border-radius: 24px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+        }
+
+        .panel-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255,255,255,0.01);
+        }
+        .panel-header h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* --- History UI --- */
+        .history-panel { flex: 1; }
+        .history-container {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .history-card {
+            background: rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.05);
+            padding: 16px;
+            border-radius: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .history-date {
+            font-size: 12px;
+            color: #94a3b8;
+            font-weight: 600;
+        }
+        .history-items {
+            font-size: 14px;
+            color: #e2e8f0;
+            line-height: 1.5;
+        }
+
+        /* --- Transcript UI --- */
+        .transcript-panel { flex: 1.5; }
+        .chat-container {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            scroll-behavior: smooth;
+        }
+        /* Custom Scrollbar */
+        .chat-container::-webkit-scrollbar, .list-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        .chat-container::-webkit-scrollbar-thumb, .list-container::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+        }
+
+        .bubble {
+            max-width: 75%;
+            padding: 14px 18px;
+            border-radius: 18px;
+            font-size: 15px;
+            line-height: 1.5;
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .bubble.user {
+            align-self: flex-end;
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            border-bottom-right-radius: 4px;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+        }
+        .bubble.agent {
+            align-self: flex-start;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #e2e8f0;
+            border-bottom-left-radius: 4px;
+        }
+
+        /* --- Shopping List UI --- */
+        .list-panel { flex: 1.2; }
+        .count-badge {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--accent);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 700;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            transition: all 0.3s ease;
+        }
+        .list-container {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .list-item {
+            background: rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.05);
+            padding: 16px;
+            border-radius: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.2s ease, background 0.2s ease;
+            animation: slideIn 0.4s ease;
+        }
+        .list-item:hover {
+            background: rgba(255,255,255,0.05);
+            transform: translateY(-2px);
+            border-color: rgba(255,255,255,0.1);
+        }
+        .item-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .item-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: rgba(59, 130, 246, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        .item-name {
+            font-weight: 600;
+            font-size: 15px;
+            color: #fff;
+            text-transform: capitalize;
+        }
+        .item-qty {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--text-muted);
+            opacity: 0.6;
+        }
+        .empty-state svg { width: 48px; height: 48px; margin-bottom: 12px; }
+
+        /* Animations */
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes popIn { 0% { opacity: 0; transform: scale(0.9); } 100% { opacity: 1; transform: scale(1); } }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+        
+        .pulse-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: var(--accent);
+            box-shadow: 0 0 10px var(--accent);
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(16,185,129, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(16,185,129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16,185,129, 0); } }
+
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>FreshMart Intelligence</h1>
+    <p>Voice-Native AI Protocol</p>
+</div>
+
+<!-- Connection Panel -->
+<div class="connect-container" id="connectPanel">
+    <input type="text" id="name" placeholder="Enter your name to initiate session..." autocomplete="off"/>
+    <button id="joinBtn" onclick="joinCall()">Connect Microphone</button>
+    <div class="status" id="status">Ready to connect...</div>
+</div>
+
+<!-- Main Workspace -->
+<div class="workspace" id="workspace">
+    <!-- Previous Lists -->
+    <div class="panel history-panel">
+        <div class="panel-header">
+            <h3>
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                Previous Lists
+            </h3>
+        </div>
+        <div class="history-container" id="historyContainer">
+            <div class="empty-state">No previous lists found.</div>
+        </div>
+    </div>
+
+    <!-- Live Transcript -->
+    <div class="panel transcript-panel">
+        <div class="panel-header">
+            <h3>
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                Live Connection Stream
+            </h3>
+            <div id="connectionDot" style="display:none;" class="pulse-dot"></div>
+        </div>
+        <div class="chat-container" id="chatContainer">
+            <!-- Bubbles injected here -->
+            <div class="empty-state" id="emptyChat">
+                Waiting for conversation to begin...
+            </div>
+        </div>
+    </div>
+
+    <!-- Active List -->
+    <div class="panel list-panel">
+        <div class="panel-header">
+            <h3>
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-1.35 2.7a1 1 0 00.9 1.4h11.9M9 21h.01M15 21h.01M9 21a1 1 0 11-2 0 1 1 0 012 0zM15 21a1 1 0 11-2 0 1 1 0 012 0z"></path></svg>
+                Shopping Cart
+            </h3>
+            <span class="count-badge" id="listCount">0 items</span>
+        </div>
+        <div class="list-container" id="listItems">
+            <!-- Items injected here -->
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { Room, RoomEvent, LocalAudioTrack } 
+        from "https://cdn.jsdelivr.net/npm/livekit-client/dist/livekit-client.esm.mjs";
+
+    const API_BASE   = "http://127.0.0.1:8000";
+    const LIVEKIT_WS = "wss://demo-wn1olguc.livekit.cloud";
+
+    let currentUser = "";
+    let eventSource = null;
+    let renderedMsgCount = 0;
+
+    function setStatus(msg) {
+        document.getElementById("status").innerHTML = msg;
+    }
+
+    // --- Dynamic Rendering ---
+    function renderList(items) {
+        const container = document.getElementById("listItems");
+        const count     = document.getElementById("listCount");
+
+        if (!items || items.length === 0) {
+            count.textContent = "0 items";
+            count.style.background = "rgba(255,255,255,0.1)";
+            count.style.color = "#94a3b8";
+            count.style.borderColor = "transparent";
+            container.innerHTML = `
+                <div class="empty-state">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                    Cart is empty
+                </div>`;
+            return;
+        }
+
+        count.textContent = `${items.length} item${items.length > 1 ? "s" : ""}`;
+        count.style.background = "rgba(16, 185, 129, 0.15)";
+        count.style.color = "var(--accent)";
+        count.style.borderColor = "rgba(16, 185, 129, 0.3)";
+
+        container.innerHTML = items.map(item => `
+            <div class="list-item">
+                <div class="item-info">
+                    <div class="item-icon">🛍️</div>
+                    <span class="item-name">${item.name}</span>
+                </div>
+                <span class="item-qty">${item.quantity}</span>
+            </div>
+        `).join("");
+    }
+
+    async function fetchHistory(uid) {
+        try {
+            const res = await fetch(`${API_BASE}/history/${encodeURIComponent(uid)}`);
+            const data = await res.json();
+            renderHistory(data.history || []);
+        } catch(e) {
+            console.error("Failed to fetch history", e);
+        }
+    }
+
+    function renderHistory(historyArray) {
+        const container = document.getElementById("historyContainer");
+        if (!historyArray || historyArray.length === 0) {
+            container.innerHTML = `<div class="empty-state">No previous lists found.</div>`;
+            return;
+        }
+        
+        container.innerHTML = historyArray.map(hist => {
+            const dateStr = new Date(hist.created_at).toLocaleString();
+            const itemsHtml = (hist.items || []).map(i => `• ${i.name} (${i.quantity})`).join('<br>');
+            return `
+                <div class="history-card">
+                    <div class="history-date">${dateStr}</div>
+                    <div class="history-items">${itemsHtml || "Empty list"}</div>
+                </div>
+            `;
+        }).join("");
+    }
+
+    function renderTranscript(messages) {
+        const container = document.getElementById("chatContainer");
+        const emptyMsg = document.getElementById("emptyChat");
+        
+        if (!messages || messages.length === 0) return;
+        if (emptyMsg) emptyMsg.remove();
+
+        // Only append new messages
+        if (messages.length > renderedMsgCount) {
+            const newMessages = messages.slice(renderedMsgCount);
+            newMessages.forEach(msg => {
+                const div = document.createElement("div");
+                div.className = `bubble ${msg.role === 'user' ? 'user' : 'agent'}`;
+                div.textContent = msg.content;
+                container.appendChild(div);
+            });
+            renderedMsgCount = messages.length;
+            // Scroll to bottom
+            container.scrollTop = container.scrollHeight;
+        }
+    }
+
+    // --- Real-time EventSource ---
+    function connectSSE(uid) {
+        if (eventSource) eventSource.close();
+        
+        eventSource = new EventSource(`${API_BASE}/stream/${encodeURIComponent(uid)}`);
+        eventSource.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                if (data.type === 'list') {
+                    renderList(data.items);
+                } else if (data.type === 'transcript') {
+                    renderTranscript(data.messages);
+                }
+            } catch (e) {
+                console.error("SSE parse error", e);
+            }
+        };
+    }
+
+    // --- LiveKit Connection ---
+    window.joinCall = async function() {
+        const name = document.getElementById("name").value.trim();
+        if (!name) { alert("Please enter your name securely."); return; }
+
+        currentUser = name;
+        const btn = document.getElementById("joinBtn");
+        btn.disabled = true;
+        setStatus('Initializing secure token...');
+
+        try {
+            const res  = await fetch(`${API_BASE}/token?identity=${encodeURIComponent(name)}`);
+            const data = await res.json();
+
+            setStatus('Handshaking with FreshMart Protocol...');
+            const room = new Room({ adaptiveStream: true, dynacast: true });
+
+            room.on(RoomEvent.TrackSubscribed, (track) => {
+                if (track.kind === "audio") {
+                    const audio = new Audio();
+                    audio.srcObject = new MediaStream([track.mediaStreamTrack]);
+                    audio.play().catch(console.error);
+                }
+            });
+
+            room.on(RoomEvent.Disconnected, () => {
+                setStatus('Session Disconnected.');
+                document.getElementById("connectionDot").style.display = "none";
+                btn.disabled = false;
+                if (eventSource) eventSource.close();
+            });
+
+            await room.connect(LIVEKIT_WS, data.token);
+
+            setStatus('Waiting for Microphone access...');
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const localTrack = new LocalAudioTrack(stream.getAudioTracks()[0]);
+            await room.localParticipant.publishTrack(localTrack);
+
+            // Transform UI state to Workspace
+            document.getElementById("connectPanel").style.display = "none";
+            document.getElementById("workspace").style.display = "flex";
+            document.getElementById("connectionDot").style.display = "block";
+
+            // Fire up the real-time server stream
+            connectSSE(currentUser);
+            fetchHistory(currentUser);
+
+        } catch(err) {
+            console.error(err);
+            setStatus(`❌ Error: ${err.message}`);
+            btn.disabled = false;
+        }
+    };
+</script>
+</body>
+</html>
