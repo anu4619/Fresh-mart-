@@ -170,8 +170,9 @@ async def run_llm(user_id: str, user_message: str) -> tuple:
         for i in adds:
             item = i.get("item")
             qty = i.get("quantity")
-            if item and qty:
-                entry = {"name": item.strip(), "quantity": qty.strip()}
+            if item:
+                qty_str = str(qty).strip() if qty else "1"
+                entry = {"name": item, "quantity": qty_str}
                 shopping_list.append(entry)
                 logger.info(f"[{user_id}] ✅ ADDED: {entry}")
                 list_changed = True
@@ -179,14 +180,12 @@ async def run_llm(user_id: str, user_message: str) -> tuple:
     if removes:
         missing_items = []
         for item in removes:
-            # Handle if LLM incorrectly outputs an object like {"item": "sugar"} instead of "sugar"
             if isinstance(item, dict):
                 item = item.get("item") or item.get("name")
             
             if not item or not isinstance(item, str):
                 continue
             
-            # Fuzzy match to drop
             removed = None
             for entry in shopping_list:
                 if item.lower() in entry["name"].lower() or entry["name"].lower() in item.lower():

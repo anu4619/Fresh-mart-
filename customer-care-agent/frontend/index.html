@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>FreshMart Intelligence AI</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         :root {
             --bg-base: #020617;
@@ -61,13 +62,59 @@
             background: var(--panel-bg);
             backdrop-filter: blur(20px);
             border: 1px solid var(--panel-border);
-            border-radius: 20px;
-            padding: 24px;
-            width: 360px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            border-radius: 24px;
+            padding: 36px 32px;
+            width: 380px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.6);
             transition: all 0.4s ease;
             z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
         }
+        .connect-logo {
+            font-size: 48px;
+            line-height: 1;
+        }
+        .connect-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin: 0;
+            text-align: center;
+        }
+        .connect-sub {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin: 0;
+            text-align: center;
+        }
+        .google-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            width: 100%;
+            padding: 14px 20px;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 14px;
+            background: rgba(255,255,255,0.06);
+            color: #fff;
+            font-size: 15px;
+            font-weight: 600;
+            font-family: 'Outfit', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+        .google-btn:hover {
+            background: rgba(255,255,255,0.12);
+            border-color: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+        .google-btn svg { flex-shrink: 0; }
 
         input {
             width: 100%;
@@ -81,7 +128,7 @@
             outline: none;
             box-sizing: border-box;
             transition: border 0.3s ease;
-            margin-bottom: 16px;
+            margin-bottom: 0;
         }
         input:focus {
             border-color: var(--primary);
@@ -113,6 +160,101 @@
             color: #94a3b8;
             cursor: not-allowed;
             transform: none;
+        }
+
+        /* Phone modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-box {
+            background: #0f172a;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 24px;
+            padding: 36px 32px;
+            width: 360px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.8);
+            animation: popIn 0.3s cubic-bezier(0.175,0.885,0.32,1.275);
+        }
+        .modal-icon { font-size: 40px; text-align: center; }
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-main);
+            text-align: center;
+            margin: 0;
+        }
+        .modal-sub {
+            font-size: 13px;
+            color: var(--text-muted);
+            text-align: center;
+            margin: 0;
+        }
+        .modal-actions { display: flex; flex-direction: column; gap: 10px; }
+        .skip-btn {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--text-muted);
+            font-size: 14px;
+            padding: 10px;
+            box-shadow: none;
+        }
+        .skip-btn:hover {
+            background: rgba(255,255,255,0.05);
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* User avatar in header */
+        .user-chip {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 40px;
+            padding: 6px 14px 6px 6px;
+            margin-top: 12px;
+        }
+        .user-chip.visible { display: flex; }
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .user-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+        .sign-out-btn {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 20px;
+            padding: 4px 10px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 8px;
+            width: auto;
+            box-shadow: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .sign-out-btn:hover {
+            background: rgba(239, 68, 68, 0.25);
+            transform: translateY(-1px);
         }
 
         .status {
@@ -342,13 +484,42 @@
 <div class="header">
     <h1>FreshMart Intelligence</h1>
     <p>Voice-Native AI Protocol</p>
+    <div class="user-chip" id="userChip">
+        <img class="user-avatar" id="userAvatar" src="" alt="avatar"/>
+        <span class="user-name" id="userNameChip"></span>
+        <button class="sign-out-btn" onclick="signOut()">Sign Out</button>
+    </div>
+</div>
+
+<!-- Phone modal -->
+<div class="modal-overlay" id="phoneModal">
+    <div class="modal-box">
+        <div class="modal-icon">📱</div>
+        <h2 class="modal-title">One last step</h2>
+        <p class="modal-sub">Add your phone number so we can reach you about your orders. You can skip this for now.</p>
+        <input type="tel" id="phoneInput" placeholder="+91 98765 43210" autocomplete="tel"/>
+        <div class="modal-actions">
+            <button id="savePhoneBtn" onclick="submitPhone()">Save &amp; Continue</button>
+            <button class="skip-btn" onclick="skipPhone()">Skip for now</button>
+        </div>
+    </div>
 </div>
 
 <!-- Connection Panel -->
 <div class="connect-container" id="connectPanel">
-    <input type="text" id="name" placeholder="Enter your name to initiate session..." autocomplete="off"/>
-    <button id="joinBtn" onclick="joinCall()">Connect Microphone</button>
-    <div class="status" id="status">Ready to connect...</div>
+    <div class="connect-logo">🛒</div>
+    <h2 class="connect-title">Welcome to FreshMart</h2>
+    <p class="connect-sub">Sign in to start your voice shopping session</p>
+    <button class="google-btn" id="googleBtn" onclick="startGoogleSignIn()">
+        <svg width="20" height="20" viewBox="0 0 48 48">
+            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+        </svg>
+        Continue with Google
+    </button>
+    <div class="status" id="status">Sign in to continue</div>
 </div>
 
 <!-- Main Workspace -->
@@ -404,16 +575,166 @@
 
     const API_BASE   = "http://127.0.0.1:8000";
     const LIVEKIT_WS = "wss://demo-wn1olguc.livekit.cloud";
+    const GOOGLE_CLIENT_ID = "625434323836-4ebp2d8tugdsj7ib7a18nkk2qv76tr38.apps.googleusercontent.com";
 
-    let currentUser = "";
+    let currentUser = "";   // will be the Gmail address
+    let currentUserName = "";
     let eventSource = null;
     let renderedMsgCount = 0;
+    let currentRoom = null;
 
     function setStatus(msg) {
         document.getElementById("status").innerHTML = msg;
     }
 
-    // --- Dynamic Rendering ---
+    // ── Google Sign-In ──────────────────────────────────────────────────────
+    window.startGoogleSignIn = function() {
+        google.accounts.id.initialize({
+            client_id: GOOGLE_CLIENT_ID,
+            callback: handleGoogleCredential,
+            auto_select: false,
+        });
+        google.accounts.id.prompt((notification) => {
+            if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+                // Fallback: render button popup
+                google.accounts.id.renderButton(
+                    document.getElementById('googleBtn'),
+                    { theme: 'filled_black', size: 'large', width: 320 }
+                );
+            }
+        });
+    };
+
+    async function handleGoogleCredential(response) {
+        setStatus('Verifying identity...');
+        document.getElementById('googleBtn').disabled = true;
+        try {
+            const res = await fetch(`${API_BASE}/auth/google`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id_token: response.credential }),
+            });
+            if (!res.ok) throw new Error(await res.text());
+            const user = await res.json();
+
+            currentUser     = user.email;
+            currentUserName = user.name;
+
+            // Show avatar chip in header
+            const chip = document.getElementById('userChip');
+            document.getElementById('userAvatar').src = user.picture;
+            document.getElementById('userNameChip').textContent = user.name;
+            chip.classList.add('visible');
+
+            if (user.phone_required) {
+                document.getElementById('phoneModal').classList.add('active');
+            } else {
+                await launchCall();
+            }
+        } catch(err) {
+            setStatus(`❌ Auth error: ${err.message}`);
+            document.getElementById('googleBtn').disabled = false;
+        }
+    }
+
+    window.submitPhone = async function() {
+        const phone = document.getElementById('phoneInput').value.trim();
+        if (!phone) { alert('Please enter a phone number or choose Skip.'); return; }
+        document.getElementById('savePhoneBtn').disabled = true;
+        try {
+            await fetch(`${API_BASE}/auth/phone`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: currentUser, phone }),
+            });
+        } catch(e) { console.warn('Phone save failed', e); }
+        document.getElementById('phoneModal').classList.remove('active');
+        await launchCall();
+    };
+
+    window.skipPhone = async function() {
+        document.getElementById('phoneModal').classList.remove('active');
+        await launchCall();
+    };
+
+    window.signOut = async function() {
+        if (currentRoom) {
+            await currentRoom.disconnect();
+            currentRoom = null;
+        }
+        if (eventSource) {
+            eventSource.close();
+            eventSource = null;
+        }
+        
+        currentUser = "";
+        currentUserName = "";
+        renderedMsgCount = 0;
+        
+        // Reset UI
+        document.getElementById('workspace').style.display = 'none';
+        document.getElementById('connectPanel').style.display = 'flex';
+        document.getElementById('connectionDot').style.display = 'none';
+        document.getElementById('userChip').classList.remove('visible');
+        document.getElementById('googleBtn').disabled = false;
+        setStatus('Sign in to continue');
+        
+        // Clear DOM states
+        document.getElementById('listItems').innerHTML = '';
+        document.getElementById('listCount').textContent = '0 items';
+        document.getElementById('chatContainer').innerHTML = '<div class="empty-state" id="emptyChat">Waiting for conversation to begin...</div>';
+        document.getElementById('historyContainer').innerHTML = '<div class="empty-state">No previous lists found.</div>';
+    };
+
+    // ── LiveKit Connection ──────────────────────────────────────────────────
+    async function launchCall() {
+        const btn = document.getElementById('googleBtn');
+        btn.disabled = true;
+        setStatus('Initializing secure token...');
+        try {
+            const res  = await fetch(`${API_BASE}/token?identity=${encodeURIComponent(currentUser)}`);
+            const data = await res.json();
+
+            setStatus('Handshaking with FreshMart Protocol...');
+            const room = new Room({ adaptiveStream: true, dynacast: true });
+            currentRoom = room;
+
+            room.on(RoomEvent.TrackSubscribed, (track) => {
+                if (track.kind === 'audio') {
+                    const audio = new Audio();
+                    audio.srcObject = new MediaStream([track.mediaStreamTrack]);
+                    audio.play().catch(console.error);
+                }
+            });
+
+            room.on(RoomEvent.Disconnected, () => {
+                setStatus('Session Disconnected.');
+                document.getElementById('connectionDot').style.display = 'none';
+                btn.disabled = false;
+                if (eventSource) eventSource.close();
+            });
+
+            await room.connect(LIVEKIT_WS, data.token);
+
+            setStatus('Waiting for Microphone access...');
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const localTrack = new LocalAudioTrack(stream.getAudioTracks()[0]);
+            await room.localParticipant.publishTrack(localTrack);
+
+            document.getElementById('connectPanel').style.display = 'none';
+            document.getElementById('workspace').style.display = 'flex';
+            document.getElementById('connectionDot').style.display = 'block';
+
+            connectSSE(currentUser);
+            fetchHistory(currentUser);
+        } catch(err) {
+            console.error(err);
+            setStatus(`❌ Error: ${err.message}`);
+            btn.disabled = false;
+        }
+    }
+
+    // ── Dynamic Rendering ──────────────────────────────────────────────────
     function renderList(items) {
         const container = document.getElementById("listItems");
         const count     = document.getElementById("listCount");
@@ -517,60 +838,6 @@
         };
     }
 
-    // --- LiveKit Connection ---
-    window.joinCall = async function() {
-        const name = document.getElementById("name").value.trim();
-        if (!name) { alert("Please enter your name securely."); return; }
-
-        currentUser = name;
-        const btn = document.getElementById("joinBtn");
-        btn.disabled = true;
-        setStatus('Initializing secure token...');
-
-        try {
-            const res  = await fetch(`${API_BASE}/token?identity=${encodeURIComponent(name)}`);
-            const data = await res.json();
-
-            setStatus('Handshaking with FreshMart Protocol...');
-            const room = new Room({ adaptiveStream: true, dynacast: true });
-
-            room.on(RoomEvent.TrackSubscribed, (track) => {
-                if (track.kind === "audio") {
-                    const audio = new Audio();
-                    audio.srcObject = new MediaStream([track.mediaStreamTrack]);
-                    audio.play().catch(console.error);
-                }
-            });
-
-            room.on(RoomEvent.Disconnected, () => {
-                setStatus('Session Disconnected.');
-                document.getElementById("connectionDot").style.display = "none";
-                btn.disabled = false;
-                if (eventSource) eventSource.close();
-            });
-
-            await room.connect(LIVEKIT_WS, data.token);
-
-            setStatus('Waiting for Microphone access...');
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            const localTrack = new LocalAudioTrack(stream.getAudioTracks()[0]);
-            await room.localParticipant.publishTrack(localTrack);
-
-            // Transform UI state to Workspace
-            document.getElementById("connectPanel").style.display = "none";
-            document.getElementById("workspace").style.display = "flex";
-            document.getElementById("connectionDot").style.display = "block";
-
-            // Fire up the real-time server stream
-            connectSSE(currentUser);
-            fetchHistory(currentUser);
-
-        } catch(err) {
-            console.error(err);
-            setStatus(`❌ Error: ${err.message}`);
-            btn.disabled = false;
-        }
-    };
 </script>
 </body>
 </html>

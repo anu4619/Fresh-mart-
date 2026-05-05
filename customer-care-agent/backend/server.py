@@ -8,11 +8,18 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from livekit import api as livekit_api
+from google.oauth2 import id_token
+from google.auth.transport import requests as google_requests
 from backend.llm_agent import run_llm, get_shopping_list
-from backend.db import load_shopping_list, get_all_users, collection, get_shopping_history
+from backend.db import (
+    load_shopping_list, get_all_users, collection, get_shopping_history,
+    upsert_user, save_user_phone, get_user,
+)
 from backend.transcript_store import get_messages
 
 load_dotenv()
+
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
 
 app = FastAPI(title="FreshMart Voice Agent")
 
@@ -34,6 +41,15 @@ class ChatRequest(BaseModel):
     text: str
 
 
+class GoogleAuthRequest(BaseModel):
+    id_token: str
+
+
+class PhoneRequest(BaseModel):
+    email: str
+    phone: str
+
+
 @app.get("/")
 def root():
     return {"status": "FreshMart Agent running", "ui": "/ui"}
@@ -41,6 +57,46 @@ def root():
 
 @app.get("/health")
 def health():
+    return {"ok": True}
+
+
+@app.post("/auth/google")
+def google_auth(req: GoogleAuthRequest):
+    """Verify a Google ID token and return the user profile."""
+    if not GOOGLE_CLIENT_ID:
+        raise HTTPException(500, "GOOGLE_CLIENT_ID not configured")
+    try:
+        info = id_token.verify_oauth2_token(
+            req.id_token,
+            google_requests.Request(),
+            GOOGLE_CLIENT_ID,
+            clock_skew_in_seconds=10,
+        )
+    except Exception as e:
+        raise HTTPException(401, f"Invalid Google token: {e}")
+
+    email   = info.get("email", "")
+    name    = info.get("name", email)
+    picture = info.get("picture", "")
+
+    user = upsert_user(email, name, picture)
+    phone_required = not bool(user.get("phone"))
+
+    return {
+        "email":          email,
+        "name":           name,
+        "picture":        picture,
+        "phone":          user.get("phone"),
+        "phone_required": phone_required,
+    }
+
+
+@app.post("/auth/phone")
+def save_phone(req: PhoneRequest):
+    """Store / update the phone number for an authenticated user."""
+    if not req.email or not req.phone:
+        raise HTTPException(400, "email and phone are required")
+    save_user_phone(req.email, req.phone)
     return {"ok": True}
 
 

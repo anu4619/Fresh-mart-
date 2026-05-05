@@ -272,6 +272,8 @@ async def main():
         logger.info(f"Joined: {participant.identity}")
         # Archive any leftover items from a previously crashed session
         archive_shopping_list(participant.identity)
+        clear_user_memory(participant.identity)
+        clear_messages(participant.identity)
         asyncio.create_task(
             send_greeting(source, speaking, participant.identity)
         )
