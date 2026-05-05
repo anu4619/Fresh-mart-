@@ -3,7 +3,8 @@ import json
 import logging
 from openai import AsyncOpenAI
 from dotenv import load_dotenv
-from backend.db import save_shopping_list, load_shopping_list
+from backend.db import save_shopping_list, load_shopping_list, get_user
+from backend.twilio_client import send_whatsapp_list
 
 load_dotenv()
 
@@ -237,6 +238,15 @@ async def run_llm(user_id: str, user_message: str) -> tuple:
     # Record ONLY the spoken conversation string to history, not the JSON block
     state["history"].append({"role": "user", "content": user_message})
     state["history"].append({"role": "assistant", "content": reply})
+
+    if is_confirmed:
+        user = get_user(user_id)
+        if user and user.get("phone"):
+            logger.info(f"[{user_id}] 🟢 Order confirmed! Sending WhatsApp to {user['phone']}...")
+            import asyncio
+            asyncio.create_task(asyncio.to_thread(send_whatsapp_list, user["phone"], shopping_list))
+        else:
+            logger.warning(f"[{user_id}] ⚠️ Order confirmed but no phone number found to send WhatsApp.")
 
     return reply, is_confirmed
 
